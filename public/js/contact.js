@@ -1,9 +1,11 @@
-function submitdata() {
+function submitdata(event) {
+  event.preventDefault()
+
   let name = document.getElementById("input-name").value;
   let email = document.getElementById("input-email").value;
-  let phome = document.getElementById("input-phone").value;
-  let subject = document.getElementById("subject").value;
-  let message = document.getElementById("message").value;
+  let phome = document.getElementById("input-phonenumber").value;
+  let subject = document.getElementById("input-subject").value;
+  let message = document.getElementById("input-yourmessage").value;
 
   console.log(name)
   console.log(email)

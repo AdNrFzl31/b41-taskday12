@@ -50,6 +50,7 @@ func main() {
 
 type SessionData struct {
 	IsLogin   bool
+	UserId    int
 	UserName  string
 	FlashData string
 }
@@ -74,18 +75,7 @@ func home(w http.ResponseWriter, r *http.Request) {
 		Data.UserName = session.Values["Name"].(string)
 	}
 
-	fm := session.Flashes("message")
-
-	var flashes []string
-	if len(fm) > 0 {
-		session.Save(r, w)
-		for _, f1 := range fm {
-
-			flashes = append(flashes, f1.(string))
-		}
-	}
-	Data.FlashData = strings.Join(flashes, " ")
-	println(flashes)
+	fmt.Println(session)
 
 	if session.Values["Islogin"] != true {
 		data, _ := connection.Conn.Query(context.Background(), "SELECT tb_project.id, tb_project.name_project, start_date, end_date, duration, description, technologies, image FROM tb_project ORDER BY id DESC")
@@ -140,9 +130,25 @@ func addProject(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.Write([]byte("massage : " + err.Error()))
 		return
+
 	}
 
-	tmpl.Execute(w, nil)
+	var store = sessions.NewCookieStore([]byte("SESSION_KEY"))
+	session, _ := store.Get(r, "SESSION_KEY")
+	fmt.Println(session)
+
+	if session.Values["IsLogin"] != true {
+		Data.IsLogin = false
+	} else {
+		Data.IsLogin = session.Values["IsLogin"].(bool)
+		Data.UserName = session.Values["Name"].(string)
+	}
+
+	resData := map[string]interface{}{
+		"DataProject": Data,
+	}
+
+	tmpl.Execute(w, resData)
 }
 
 func contactMe(w http.ResponseWriter, r *http.Request) {
@@ -154,7 +160,21 @@ func contactMe(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl.Execute(w, nil)
+	var store = sessions.NewCookieStore([]byte("SESSION_KEY"))
+	session, _ := store.Get(r, "SESSION_KEY")
+
+	if session.Values["IsLogin"] != true {
+		Data.IsLogin = false
+	} else {
+		Data.IsLogin = session.Values["IsLogin"].(bool)
+		Data.UserName = session.Values["Name"].(string)
+	}
+
+	resData := map[string]interface{}{
+		"DataContact": Data,
+	}
+
+	tmpl.Execute(w, resData)
 }
 
 type Project struct {
@@ -256,6 +276,16 @@ func projectDetail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var store = sessions.NewCookieStore([]byte("SESSION_KEY"))
+	session, _ := store.Get(r, "SESSION_KEY")
+
+	if session.Values["IsLogin"] != true {
+		Data.IsLogin = false
+	} else {
+		Data.IsLogin = session.Values["IsLogin"].(bool)
+		Data.UserName = session.Values["Name"].(string)
+	}
+
 	var ProjectDetail = Project{}
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 	err = connection.Conn.QueryRow(context.Background(), "SELECT tb_project.id, name_project, start_date, end_date, duration, description, technologies, image, tb_user.name as author FROM tb_project LEFT JOIN tb_user ON tb_project.author_id = tb_user.id WHERE tb_project.id = $1", id).Scan(
@@ -269,7 +299,8 @@ func projectDetail(w http.ResponseWriter, r *http.Request) {
 	ProjectDetail.FormatD_EndDate = ProjectDetail.EndDate.Format("2 January 2006")
 
 	data := map[string]interface{}{
-		"ProjectDetail": ProjectDetail,
+		"DataProjectdetail": Data,
+		"ProjectDetail":     ProjectDetail,
 	}
 
 	tmpl.Execute(w, data)
@@ -460,6 +491,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 }
 
 func submitLogin(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("login")
 	err := r.ParseForm()
 	if err != nil {
 		log.Fatal(err)
@@ -522,7 +554,7 @@ func logout(w http.ResponseWriter, r *http.Request) {
 	session.Options.MaxAge = -1
 	session.Save(r, w)
 
-	http.Redirect(w, r, "/login", http.StatusSeeOther)
+	http.Redirect(w, r, "/home", http.StatusSeeOther)
 }
 
 // go run main.go

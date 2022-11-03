@@ -35,13 +35,36 @@
           <li class="nav-item mx-lg-3 me-sm-3">
             <a class="nav-link" aria-current="page" href="/">Home</a>
           </li>
+          {{if .DataContact.IsLogin}}
           <li class="nav-item">
             <a class="nav-link" href="/addProject">Add Project</a>
           </li>
+          {{end}}
         </ul>
-        <a href="/contactMe">
-          <button class="btn btn-dark px-3 rounded-3 active fw-bold" type="button">Contact Me</button>
-        </a>
+        <form class="d-flex">
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 align-items-center">
+            {{if .DataContact.IsLogin}}
+            <li class="nav-item">
+              <a class=" navbar-brand me-5 text-dark fw-bold">Hallo, {{.DataContact.UserName}}</a>
+            </li>
+            <li class="nav-item">
+              <a href="/logout" class="btn btn-dark  py-1 px-4">logout</a>
+            </li>
+            {{else}}
+            <li class="nav-item">
+              <a class="nav-link text-dark mx-1" href="/register">Register</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link text-dark mx-3" aria-current="page" href="/login">Login</a>
+            </li>
+            {{end}}
+            <li class="nav-item p-1">
+              <a href="/contactMe">
+                <button class="btn btn-dark px-3 mx-3  active fw-bold" type="button">Contact Me</button>
+              </a>
+            </li>
+          </ul>
+        </form>
       </div>
     </div>
   </nav>
@@ -53,7 +76,7 @@
     <div>
       <h2 class="text-center fw-semibold mt-5 mb-4">GET IN TOUCH</h2>
 
-      <form action="/addContactMe" onsubmit="submitData()" method="post" class="container mb-5" style="width: 350px;">
+      <form onsubmit="submitdata(event)" action="/addContactMe" method="post" class="container mb-5" style="width: 350px;">
         <div class="mb-3">
           <label for="input-name" class="form-label mb-0">Name</label>
           <input type="text" id="input-name" name="input-name" class="form-control" placeholder="Enter name...">
